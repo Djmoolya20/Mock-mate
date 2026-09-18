@@ -6,3 +6,5 @@ __pycache__/
 *.pyc
 .aws-sam/
 .DS_Store
+
+test_*.py

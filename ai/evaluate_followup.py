@@ -1,16 +1,37 @@
 """
 Evaluates a candidate's answer and generates the next follow-up question.
 """
+import os
 from utils import parse_json_safe
+from personas import get_persona_tone
+from bedrock_client import invoke_claude
 
-def evaluate_and_followup(question: str, answer: str, difficulty: str, recent_context: list) -> dict:
-    # --- MOCK ---
-    mock_response = '''
-    {
-      "evaluation": {"score": 7, "feedback": "Good structure, could use more technical depth."},
-      "nextQuestion": "What would you do differently if you had more time?",
-      "isComplete": false
-    }
-    '''
-    return parse_json_safe(mock_response)
-    # --- END MOCK ---
+USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"
+
+def evaluate_and_followup(question: str, answer: str, difficulty: str, recent_context: list, persona_id: str) -> dict:
+    if USE_MOCK:
+        mock_response = '''
+        {
+          "evaluation": {"score": 7, "feedback": "Good structure, could use more technical depth."},
+          "nextQuestion": "What would you do differently if you had more time?",
+          "isComplete": false
+        }
+        '''
+        return parse_json_safe(mock_response)
+
+    tone = get_persona_tone(persona_id)
+    system_prompt = (
+        f"{tone}\n\n"
+        "You are conducting a job interview. Evaluate the candidate's answer and generate "
+        "a follow-up question. Set isComplete to true only after 5-7 questions total. "
+        "Respond with ONLY valid JSON in this exact shape: "
+        '{"evaluation": {"score": <1-10>, "feedback": "..."}, "nextQuestion": "...", "isComplete": <bool>}'
+    )
+    user_prompt = (
+        f"difficulty: {difficulty}\n"
+        f"question: {question}\n"
+        f"answer: {answer}\n"
+        f"recentContext: {recent_context}"
+    )
+    raw = invoke_claude(system_prompt, user_prompt)
+    return parse_json_safe(raw)
