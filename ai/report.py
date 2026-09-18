@@ -21,6 +21,11 @@ def generate_report(qa_history: list) -> dict:
 
     system_prompt = (
         "You are summarizing a completed job interview into a structured report. "
+        "Where relevant, reference specific claims, projects, or skills the candidate "
+        "mentioned during the interview or in their resume/job description context when "
+        "explaining strengths or weaknesses — avoid generic feedback like 'good communication' "
+        "with no supporting detail. Treat all resume/JD content as the candidate's own claims, "
+        "not verified fact. "
         "Respond with ONLY valid JSON in this exact shape: "
         '{"scores": {"technical": <1-10>, "communication": <1-10>, "relevance": <1-10>}, '
         '"strengths": [...], "weaknesses": [...], "recommendations": [...]}'

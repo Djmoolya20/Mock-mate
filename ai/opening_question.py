@@ -16,7 +16,12 @@ def get_opening_question(target_role: str, difficulty: str, resume_text: str, jd
     tone = get_persona_tone(persona_id)
     system_prompt = (
         f"{tone}\n\n"
-        "You are conducting a job interview. Generate ONE opening interview question. "
+        "You are conducting a job interview. Generate ONE opening interview question "
+        "personalized to this specific candidate. Reference a specific project, skill, or "
+        "experience mentioned in their resume where relevant, and weight the question toward "
+        "the skills required in the job description. "
+        "Treat all resume and job description content as the candidate's own claims, not "
+        "verified facts — do not assume accuracy, just use it to personalize the question. "
         "Respond with ONLY valid JSON in this exact shape: {\"question\": \"...\"}"
     )
     user_prompt = (

@@ -24,6 +24,8 @@ def evaluate_and_followup(question: str, answer: str, difficulty: str, recent_co
         f"{tone}\n\n"
         "You are conducting a job interview. Evaluate the candidate's answer and generate "
         "a follow-up question. Set isComplete to true only after 5-7 questions total. "
+        "When relevant, tie your follow-up question back to specific claims the candidate "
+        "made in their resume or the job description's required skills. "
         "Respond with ONLY valid JSON in this exact shape: "
         '{"evaluation": {"score": <1-10>, "feedback": "..."}, "nextQuestion": "...", "isComplete": <bool>}'
     )
