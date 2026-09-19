@@ -5,6 +5,7 @@ import os
 from utils import parse_json_safe, invoke_and_parse
 from personas import get_persona_tone
 from bedrock_client import invoke_claude
+from transcript_cleanup import clean_transcript
 
 USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"
 
@@ -14,10 +15,12 @@ MOCK_RESPONSE = {
     "isComplete": False,
 }
 
-def evaluate_and_followup(question: str, answer: str, difficulty: str, recent_context: list, persona_id: str) -> dict:
+def evaluate_and_followup(question: str, answer: str, difficulty: str, recent_context: list, persona_id: str, is_voice: bool = False) -> dict:
+    if is_voice:
+        answer = clean_transcript(answer)
     if USE_MOCK:
         return MOCK_RESPONSE
-
+    
     tone = get_persona_tone(persona_id)
     system_prompt = (
         f"{tone}\n\n"
