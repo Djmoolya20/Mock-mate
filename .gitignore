@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# AWS / local credentials
+.aws/
+*.pem
+
+# Local test outputs
+response.txt
+answer_response.txt
+answer_response_2.txt
+answer_response_3.txt
+report_response.txt
+list_response.txt
+
+# Local payload/test files
+payload.json
+answer_payload*.json
+report_payload.json
+list_payload.json
+api_start_payload.json
+api_answer_payload.json
+api_report_payload.json
+
+# Generated/local databases
+chroma_db/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+deployment.zip
