@@ -43,3 +43,11 @@ chroma_db/
 Thumbs.db
 
 deployment.zip
+node_modules/
+.next/
+.env
+.env.local
+__pycache__/
+*.pyc
+.aws-sam/
+.DS_Store
