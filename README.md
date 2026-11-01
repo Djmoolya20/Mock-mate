@@ -1,36 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Poise — AI interview simulator
 
-## Getting Started
+Poise is a career interview simulator. You pick a role, an interviewer, and a difficulty, answer five questions in a calm interview room, and get a report that reads your **content** (what you said) and your **presence** (how you showed up) as one story.
 
-First, run the development server:
+This repository is the **frontend text MVP**. Everything works end to end, but the AI backend, auth, video analysis, and storage are mocked locally so the product and design can be reviewed and demoed.
+
+---
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Other scripts:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run lint     # ESLint
+npm run build    # production build
+npm start        # run the production build
+node scripts/shots.mjs   # Playwright screenshots + full 5-answer flow (needs a dev server + Microsoft Edge)
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`scripts/shots.mjs` drives Edge through `playwright-core`, walks setup → interview → report → history, writes screenshots to `shots/`, and prints any console errors.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Routes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Route | What it is |
+| --- | --- |
+| `/` | Marketing landing page with sample report links |
+| `/sign-in` | Mock sign-in / sign-up (any non-empty credentials) |
+| `/setup` | Role, difficulty, interview type, interviewer, resume, job description |
+| `/interview` | Interview room: question, answer box, local camera preview |
+| `/report/[id]` | Content + presence report, question-by-question transcript |
+| `/history` | Readiness trend, averages, session archive |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## What is mocked
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Auth
+`/sign-in` accepts any non-empty email and password (and a name in sign-up mode), waits a beat, stores a demo user, and sends you to `/setup`. There is no session token, no Cognito, and no route protection beyond "is a demo user stored".
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Later:** replace the `saveUser` call with Amplify Auth against Cognito and gate `(app)` routes with a real session.
+
+### Interview questions
+`getQuestions()` in `src/lib/data.ts` builds five questions from the chosen role, interview type, and persona using local templates with `{role}` / `{topic}` substitution and a small role-specific bank. Answers are not sent anywhere.
+
+### Answer evaluation
+`evaluateAnswer()` in `src/lib/interview.ts` scores each answer heuristically:
+
+- length and specificity signals (numbers, transitions, named outcomes)
+- keyword overlap with the question
+- structure markers ("first", "then", "because", "result")
+- per-difficulty baseline and spread
+
+It returns the same `Evaluation` shape the real model is expected to return, so the UI does not change when the backend lands. Strong, specific answers land around 80–85 content.
+
+### Presence metrics
+`generatePresenceMetrics(seed)` returns deterministic-per-session mock numbers:
+
+```ts
+{
+  eyeContactPercent: number,
+  posture: { slouchPercent: number, leanEvents: number },
+  gestures: { fidgetCount: number, handsNearFaceCount: number },
+}
+```
+
+These exact keys must be preserved: they are the agreed hand-off shape from MediaPipe. The camera preview in `src/components/camera-preview.tsx` is a **real** `getUserMedia` stream with permission, denied, and error states. Nothing is recorded or uploaded.
+
+**Later:** run MediaPipe Face/Pose/Hands landmarks over the local stream, aggregate per question, and feed the same object into `buildReport()`.
+
+### Report
+`buildReport()` blends content and presence into an overall readiness score (78% content / 22% presence), derives dimension summaries, strengths, improvements, presence notes, and three next steps. Sample reports are generated by `createSampleReports()` so the landing page, `/history`, and `/report/sample_2` are populated on first visit.
+
+### Persistence
+Everything lives in the browser.
+
+| Key | Storage | Contents |
+| --- | --- | --- |
+| `poise.user.v1` | `localStorage` | `{ name, email }` |
+| `poise.history.v1` | `localStorage` | `Report[]`, seeded with samples on first read |
+| `poise.last-config.v1` | `localStorage` | Last setup form values |
+| `poise.draft.v1` | `sessionStorage` | In-progress `InterviewSession` |
+
+The draft intentionally uses `sessionStorage`: an in-progress interview should not survive a new tab, and using `localStorage` caused `/interview` to resurrect stale drafts.
+
+Storage reads go through `useSyncExternalStore` hooks in `src/lib/use-storage.ts` and a custom `poise:storage-change` event, so the UI stays in sync across tabs without `setState` inside effects.
+
+To reset the demo: clear site data, or run `localStorage.clear()` in the console. Deleting `poise.history.v1` re-seeds the samples.
+
+---
+
+## Wiring the real API
+
+The mock seam is deliberately narrow. Keep the components as they are and replace these functions:
+
+| Mock | Real call (expected) |
+| --- | --- |
+| `createSession(config)` | `POST /sessions` → `InterviewSession` |
+| `submitAnswer(session, answer)` | `POST /sessions/:id/answers` → `{ session, evaluation, isComplete }` |
+| `generatePresenceMetrics(seed)` | MediaPipe aggregation in the browser → `BodyLanguageMetrics` |
+| `buildReport(session, metrics)` | `POST /sessions/:id/report` → `Report`, or keep client-side blending |
+| `getHistory()` / `saveReport()` | `GET /reports`, `POST /reports` |
+| `saveUser()` | Amplify `signIn` / `signUp` + Cognito session |
+
+`src/lib/types.ts` is the contract: `InterviewConfig`, `InterviewSession`, `InterviewQuestion`, `Evaluation`, `Report`, `BodyLanguageMetrics`. `src/lib/interview.ts` and `src/lib/store.ts` are the only files that need to change shape when the backend arrives.
+
+---
+
+## Design system
+
+Warm paper background, near-black ink, lime/coral/lilac accents, Instrument Serif display type against Manrope body text. Tokens, animations, and utilities live in `src/app/globals.css` (Tailwind v4 `@theme`). Shared primitives are in `src/components/ui`, and `src/components/app-shell.tsx` provides the sidebar/mobile workspace chrome.
+
+The report is intentionally one read top to bottom: verdict → content vs presence → what stuck / what to tighten → presence in detail → next rehearsal → transcript.
+
+---
+
+## Not built yet
+
+- Cognito auth through Amplify
+- Real question generation and answer evaluation (LLM)
+- MediaPipe camera analysis and real presence scoring
+- Voice answers and interviewer speech ("Soon" in the UI)
+- Resume upload to S3 (the form records a filename only)
+- Backend persistence and multi-user history
+- Deployment configuration and CI
+
+---
+
+## Notes for Next.js 16
+
+- `useParams()` on the report route is wrapped in `<Suspense>`.
+- `react-hooks/set-state-in-effect` is enabled; use the storage hooks rather than setting state in effects.
+- The project uses Turbopack and Tailwind v4 (`@tailwindcss/turbopack`); no `tailwind.config` file.

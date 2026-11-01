@@ -1,26 +1,234 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --poise-ink: #17181c;
+  --poise-ink-soft: #23252b;
+  --poise-paper: #f4f1e8;
+  --poise-cream: #fbf9f3;
+  --poise-line: #ddd7c8;
+  --poise-muted: #6f6b61;
+  --poise-lime: #d8ff57;
+  --poise-lime-soft: #ecffb0;
+  --poise-coral: #ff7a59;
+  --poise-lilac: #c9c2ff;
+  --poise-sky: #8fd3ff;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-instrument), "Iowan Old Style", Georgia, serif;
+  --color-ink: #17181c;
+  --color-ink-soft: #23252b;
+  --color-paper: #f4f1e8;
+  --color-cream: #fbf9f3;
+  --color-line: #ddd7c8;
+  --color-muted: #6f6b61;
+  --color-lime: #d8ff57;
+  --color-lime-soft: #ecffb0;
+  --color-coral: #ff7a59;
+  --color-lilac: #c9c2ff;
+  --color-sky: #8fd3ff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-paper);
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-lime);
+  color: var(--color-ink);
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+textarea {
+  resize: vertical;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c9c3b4;
+  border: 3px solid var(--color-paper);
+  border-radius: 999px;
+}
+
+.dark-scroll::-webkit-scrollbar-thumb {
+  background: #3a3d46;
+  border-color: var(--color-ink);
+}
+
+.font-display {
+  font-family: var(--font-instrument), "Iowan Old Style", Georgia, serif;
+}
+
+.dot-grid {
+  background-image: radial-gradient(rgba(23, 24, 28, 0.16) 0.7px, transparent 0.7px);
+  background-size: 16px 16px;
+}
+
+.dot-grid-light {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.13) 0.7px, transparent 0.7px);
+  background-size: 18px 18px;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
+.focus-ring-light:focus-visible {
+  outline: 2px solid var(--color-lime);
+  outline-offset: 3px;
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(0.5deg);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.75);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-8%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(320%);
+    opacity: 0;
+  }
+}
+
+@keyframes sound-bar {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.animate-float-soft {
+  animation: float-soft 7s ease-in-out infinite;
+}
+
+.animate-rise {
+  animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+.animate-scan {
+  animation: scan-line 5s ease-in-out infinite;
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #e8e3d7 25%, #f5f1e8 50%, #e8e3d7 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.7s linear infinite;
+}
+
+.shimmer-dark {
+  background: linear-gradient(90deg, #2a2c33 25%, #343740 50%, #2a2c33 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.7s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
