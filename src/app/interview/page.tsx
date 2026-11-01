@@ -25,6 +25,7 @@ import {
   sleep,
   submitAnswer,
 } from "@/lib/interview";
+import { usePresence } from "@/lib/use-presence";
 import { clearDraft, saveDraft, saveReport, STORAGE_KEYS } from "@/lib/store";
 import { parseStoredJson, useStorageValue } from "@/lib/use-storage";
 import type { InterviewSession } from "@/lib/types";
@@ -73,6 +74,8 @@ function InterviewRoom({ initialSession }: { initialSession: InterviewSession })
   );
   const [confirmExit, setConfirmExit] = useState(false);
   const [error, setError] = useState("");
+  const [presenceMeasured, setPresenceMeasured] = useState(false);
+  const presence = usePresence();
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -100,7 +103,10 @@ function InterviewRoom({ initialSession }: { initialSession: InterviewSession })
 
       if (result.isComplete) {
         setFinishing(true);
-        const metrics = generatePresenceMetrics(result.session.id);
+        const measured = presence.snapshot();
+        setPresenceMeasured(measured !== null);
+        presence.stop();
+        const metrics = measured ?? generatePresenceMetrics(result.session.id);
         const report = buildReport(result.session, metrics, {
           durationSeconds: Math.max(1, elapsed),
         });
@@ -424,7 +430,7 @@ function InterviewRoom({ initialSession }: { initialSession: InterviewSession })
               </div>
             </div>
 
-            <CameraPreview />
+            <CameraPreview presence={presence} />
           </aside>
         </div>
       </main>
@@ -488,7 +494,8 @@ function InterviewRoom({ initialSession }: { initialSession: InterviewSession })
               <span className="italic text-lime"> one read.</span>
             </h2>
             <p className="mt-4 text-[11px] text-white/35">
-              Reading {answered} answers and your presence signals.
+              Reading {answered} answers and{" "}
+              {presenceMeasured ? "your measured presence" : "your session signals"}.
             </p>
           </div>
         </div>
