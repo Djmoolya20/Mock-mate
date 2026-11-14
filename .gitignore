@@ -1,28 +1,78 @@
+
+# ==============================
 # Python
+# ==============================
 __pycache__/
 *.py[cod]
 *.pyo
 venv/
 .venv/
+test_*.py
+list_*.py
 
-# Environment / secrets
+# ==============================
+# Environment / Secrets
+# ==============================
 .env
 .env.*
 !.env.example
-
-# AWS / local credentials
-.aws/
 *.pem
+.aws/
 
-# Local test outputs
+# ==============================
+# AWS
+# ==============================
+.aws-sam/
+
+# ==============================
+# Node.js / Dependencies
+# ==============================
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# ==============================
+# Next.js
+# ==============================
+.next/
+out/
+
+# ==============================
+# Build / Production
+# ==============================
+build/
+coverage/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+
+# ==============================
+# Testing / Debug
+# ==============================
+shots/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+scripts/_*.mjs
+scripts/_*.ps1
+
+# ==============================
+# Local Test Outputs
+# ==============================
 response.txt
-answer_response.txt
-answer_response_2.txt
-answer_response_3.txt
+answer_response*.txt
 report_response.txt
 list_response.txt
 
-# Local payload/test files
+# ==============================
+# Local Payload / Test Files
+# ==============================
 payload.json
 answer_payload*.json
 report_payload.json
@@ -31,27 +81,24 @@ api_start_payload.json
 api_answer_payload.json
 api_report_payload.json
 
-# Generated/local databases
+# ==============================
+# Generated Databases
+# ==============================
 chroma_db/
 
+# ==============================
 # IDE
+# ==============================
 .vscode/
 .idea/
 
+# ==============================
 # OS
+# ==============================
 .DS_Store
 Thumbs.db
 
+# ==============================
+# Other
+# ==============================
 deployment.zip
-node_modules/
-.next/
-.env
-.env.local
-__pycache__/
-*.pyc
-.aws-sam/
-.DS_Store
-
-test_*.py
-
-list_*.py
